@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="./vue.js"></script>
+</head>
+<body>
+  <div id="app">
+    <p>{{ text }}</p>
+    <my-component></my-component>
+  </div>
+</body>
+<script>
+  Vue.component('my-component', {
+    template: '<div>A custom component!</div>'
+  })
+  let vm = new Vue({
+    el: '#app',
+    data () {
+      return {
+        text: 'Hello, Vue!'
+      }
+    }
+  })
+</script>
+</html>

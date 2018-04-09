@@ -37,10 +37,12 @@ export function initMixin (Vue: Class<Component>) {
       mark(startTag)
     }
 
-    // a flag to avoid this being observed - 给实例一个属性
+    // a flag to avoid this being observed - 给实例一个属性，避免实例被观察
     vm._isVue = true
 
-
+    console.log('基础 => 一个实例的constructor属性是创造它的构造函数本身：', vm.constructor, vm.constructor.super)
+    console.log('即使demo.html里是先声明自定义组件后创建实例，但是控制台触发的却是相反。Vue的机制好似是pub/sub发布订阅模式，要不然的话控制台输出应该是先组件后实例')
+    
     // merge options
     /**
      * 处理实例化Vue传入的对象参数
@@ -56,26 +58,38 @@ export function initMixin (Vue: Class<Component>) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
-      // 由于动态选项合并非常缓慢，所以需要进一步优化 实例化Vue 流程
-      console.log('优化实例化，但是不能直接在实例化的时候用_isComponent: true，会报错：Cannot read property componentOptions of undefined，需要配合特殊条件')
-      initInternalComponent(vm, options)
+      // 1. 由于动态选项合并非常缓慢，所以需要进一步优化 实例化Vue 流程
+      console.log('opt2: 优化实例化，但是不能直接在实例化的时候用_isComponent: true，会报错：Cannot read property componentOptions of undefined，需要配合特殊条件；只有在自定义组件时会自动给options加上的_isComponent才有意义', '优先创建组件', options._isComponent)
+      initInternalComponent(vm, options)  // 应该就是这个方法会检测到当前的方式，然后决定是否添加_isComponent属性
     } else {
-      // 普通实例化
-      console.log('正常实例化')
+      // 1. 普通实例化
+      // 2. 赋值给实例一个$options属性，值为合并选项模块处理后的结果
+      console.log('opt1: 正常实例化，优先处理创建实例', options._isComponent)
+      // 三个参数：1）传入参数为Vue类本身的函数返回值 2）options 3）vue实例本身
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
         vm
       )
     }
+
+    // 20180409 20:25
     /* istanbul ignore else */
+    // 非生产环境需要调用 初始化代理模块，传入vue实例作为参数
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
     } else {
+      // 生产环境则 赋值给vue实例一个_renderProxy属性，键值为实例本身
       vm._renderProxy = vm
     }
+
     // expose real self
+    // 赋值给vue实例一个_self属性，键值为实例本身
     vm._self = vm
+
+    // 20180409 20:34
+    // 上面已经对创建实例做出完初始化属性，紧接着就是引入生命周期模块、事件模块、渲染模块(template)、回调钩子模块=>触发beforeCreate生命周期(应该跟生命周期挂钩)、初始化注入模块、初始化状态模块(处理state、props)、初始化供应模块、回调钩子模块=>触发create生命周期(应该跟生命周期挂钩)
+    // 这里可以对照官网周期图，看看Vue在这两个生命周期前后做了啥
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)
