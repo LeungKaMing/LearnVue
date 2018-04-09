@@ -5,39 +5,63 @@ import { initProxy } from './proxy' // 引入初始化代理模块
 import { initState } from './state' // 引入状态模块
 import { initRender } from './render' // 引入初始化渲染模块
 import { initEvents } from './events' // 引入初始化事件模块
-import { mark, measure } from '../util/perf'
-import { initLifecycle, callHook } from './lifecycle'
-import { initProvide, initInjections } from './inject'
-import { extend, mergeOptions, formatComponentName } from '../util/index'
+import { mark, measure } from '../util/perf'  // 工具方法
+import { initLifecycle, callHook } from './lifecycle' // 引入初始化生命周期模块， 引入回调钩子模块
+import { initProvide, initInjections } from './inject'  // 引入初始化供应模块，引入初始化注入模块
+import { extend, mergeOptions, formatComponentName } from '../util/index' // 工具方法：从公共方法引入 扩展模块、合并选项模块、格式化组件名模块
 
 // 计数器
 let uid = 0
 
 // flow写法，其实就是规定参数类型，先无视
 export function initMixin (Vue: Class<Component>) {
-  // 给Vue原型上绑定_init方法 - 20180313
+  // 给Vue原型上绑定_init方法
   Vue.prototype._init = function (options?: Object) {
+    // 重命名Vue实例
     const vm: Component = this
-    // a uid
+    
+    // a uid - 给实例一个属性，统计该方法执行次数
     vm._uid = uid++
 
+    // 开始标识、结束标识
     let startTag, endTag
+
     /* istanbul ignore if */
+    // 满足三个条件：1) 非生产环境 2) 3)
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+      // 赋值开始标识
       startTag = `vue-perf-start:${vm._uid}`
+      // 赋值结束标识
       endTag = `vue-perf-end:${vm._uid}`
+      // 把开始标识传给公共方法
       mark(startTag)
     }
 
-    // a flag to avoid this being observed
+    // a flag to avoid this being observed - 给实例一个属性
     vm._isVue = true
+
+
     // merge options
+    /**
+     * 处理实例化Vue传入的对象参数
+     * new Vue({
+     *  data: {},
+     *  watch: {},
+     *  computed: {},
+     *  created () {},
+     *  methods: {}
+     * })
+     */
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+      // 由于动态选项合并非常缓慢，所以需要进一步优化 实例化Vue 流程
+      console.log('优化实例化，但是不能直接在实例化的时候用_isComponent: true，会报错：Cannot read property componentOptions of undefined，需要配合特殊条件')
       initInternalComponent(vm, options)
     } else {
+      // 普通实例化
+      console.log('正常实例化')
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
