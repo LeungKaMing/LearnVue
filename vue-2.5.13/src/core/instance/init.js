@@ -14,7 +14,7 @@ import { extend, mergeOptions, formatComponentName } from '../util/index' // 工
 let uid = 0
 
 // flow写法，其实就是规定参数类型，先无视
-export function initMixin (Vue: Class<Component>) {
+export function initMixin (Vue: Class<Component>) {                                                                  
   // 给Vue原型上绑定_init方法
   Vue.prototype._init = function (options?: Object) {
     // 重命名Vue实例
@@ -112,6 +112,11 @@ export function initMixin (Vue: Class<Component>) {
   }
 }
 
+/**
+ * 初始化内部组件方法 => 只有自定义创建组件的时候才触发
+ * @param {*} vm - Vue实例 
+ * @param {*} options 创建Vue实例传入的对象参数
+ */
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
@@ -133,27 +138,45 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   }
 }
 
+/**
+ * 处理构造器选项的方法 - 2018/04/17 
+ * @param {*} Ctor - 构造器，一般是指类本身
+ */
 export function resolveConstructorOptions (Ctor: Class<Component>) {
+  // 将类的options属性值 赋值给 对象变量
   let options = Ctor.options
+  // 如果当前类本身还具有父级
   if (Ctor.super) {
+    // 传入该类的父级给当前函数，进行递归，把返回值赋值给变量superOptions
     const superOptions = resolveConstructorOptions(Ctor.super)
+    // 将当前类的superOptions属性值 赋值给 临时变量cachedSuperOptions
     const cachedSuperOptions = Ctor.superOptions
+    // 上面做法目的就是为了确保当前类【属于最顶层的】
+    // 下面判断是为了确保 临时变量cachedSuperOptions 跟 当前类父级的options属性值 一直是相等的
     if (superOptions !== cachedSuperOptions) {
       // super option changed,
       // need to resolve new options.
+      // 证明当前类父级的options属性值已经被改变，需要强行【重新赋值当前类的superOptions属性】 => 如何知道当前类父级的options属性值已经被改变？？是否有watch机制监听整个类？
       Ctor.superOptions = superOptions
       // check if there are any late-modified/attached options (#4976)
+      // 检查类的options属性值最近是否存在改动 或者 附加，返回值赋值给临时变量modifiedOptions => 一发现有问题就马上检查整个类
       const modifiedOptions = resolveModifiedOptions(Ctor)
       // update base extend options
+      // 如果存在变动
       if (modifiedOptions) {
+        // 将当前类的extendOptions属性值(同options 和 superOptions都属于类本身属性) 和 临时变量modifiedOptions传入该方法进行扩展
         extend(Ctor.extendOptions, modifiedOptions)
       }
+      // 首先将变量superOptions 和 当前类的extendOptions属性传入【合并选项方法】；然后把合并返回的结果强制赋值给类的options属性；最后强制赋值给变量options
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
+      // 如果变量options存在名字属性
       if (options.name) {
+        // 将当前类赋值给变量options的某个属性
         options.components[options.name] = Ctor
       }
     }
   }
+  // 返回对象变量
   return options
 }
 
