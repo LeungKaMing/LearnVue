@@ -311,34 +311,48 @@ export function stateMixin (Vue: Class<Component>) {
   // when using Object.defineProperty, so we have to procedurally build up
   // the object here.
   const dataDef = {}
-  dataDef.get = function () { return this._data }
+  dataDef.get = function () { return this._data } // 把初始化vue实例时$options上的data暂存到临时变量
   const propsDef = {}
-  propsDef.get = function () { return this._props }
+  propsDef.get = function () { return this._props } // 把初始化vue实例时$options上的data暂存到临时变量
   if (process.env.NODE_ENV !== 'production') {
+    // 非生产环境
+    // 给所有想赋值给临时变量的操作，都进行提示
     dataDef.set = function (newData: Object) {
+      // etc: Vue.prototype.$data = { a:1 } => 不允许
       warn(
         'Avoid replacing instance root $data. ' +
         'Use nested data properties instead.',
         this
       )
     }
-    propsDef.set = function () {
+      // etc: Vue.prototype.$props = { a:1 } => 不允许
+      propsDef.set = function () {
       warn(`$props is readonly.`, this)
     }
   }
-  Object.defineProperty(Vue.prototype, '$data', dataDef)
-  Object.defineProperty(Vue.prototype, '$props', propsDef)
 
-  Vue.prototype.$set = set
-  Vue.prototype.$delete = del
+  Object.defineProperty(Vue.prototype, '$data', dataDef)  // 对Vue原型做数据劫持，绑定临时变量给$data属性
+  Object.defineProperty(Vue.prototype, '$props', propsDef)  // 对Vue原型做数据劫持，绑定临时变量给$props属性
 
+  Vue.prototype.$set = set  // 将引入的set模块函数，赋值给Vue原型的$set属性
+  Vue.prototype.$delete = del  // 将引入的del模块函数，赋值给Vue原型的$delete属性
+
+  /**
+   * 赋值给Vue原型的$watch属性的匿名函数
+   * @param {*} expOrFn 
+   * @param {*} cb 
+   * @param {*} options 
+   */
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,
     options?: Object
   ): Function {
+    // 重命名Vue实例
     const vm: Component = this
+    // 判断参数是否为对象类型
     if (isPlainObject(cb)) {
+      // 是，交给createWatcher函数处理
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}

@@ -15,21 +15,43 @@ import VNode, { cloneVNodes, createEmptyVNode } from '../vdom/vnode'
 
 import { isUpdatingChildComponent } from './lifecycle'
 
+// 0502
+/**
+ * 初始化渲染
+ * @param {*} vm - vue实例
+ */
 export function initRender (vm: Component) {
+  // 初始化节点相关属性 赋值给vue实例
   vm._vnode = null // the root of the child tree
   vm._staticTrees = null // v-once cached trees
+
+  // 暂存 初始化vue实例的对象参数
   const options = vm.$options
+  // 暂存 对象参数的_parentVnode属性，并将该属性值赋值给$vnode属性
   const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
+  // 判断上述变量是否存在context属性，暂存
   const renderContext = parentVnode && parentVnode.context
+
+  // 初始化插槽属性 赋值给vue实例
   vm.$slots = resolveSlots(options._renderChildren, renderContext)
   vm.$scopedSlots = emptyObject
+
   // bind the createElement fn to this instance
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
+  /* 1. 绑定createElement函数到vue实例，这样我们就可以通过该函数来获取到准确的上下文。
+   * 2. 参数的顺序：标识符【HTML标签 或者 自定义组件名字】，数据【通常是对象类型；包括类样式，行内样式，DOM属性，自定义属性，事件监听器，vue自定义指令，插槽相关，标识】，子元素【通常是数组类型】，是否格式化。
+   * 3. 格式化代码在开发版本通常是在渲染函数将模版编译过来的情况下使用。
+   * 结论：将createElement函数 暂存到vue实例的_c属性
+   */
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
+
   // normalization is always applied for the public version, used in
   // user-written render functions.
+  /**
+   * 格式化代码通常应用在生产版本中，在用户书写的渲染函数体现【或者说调用这个方法都是要格式化代码的】。
+   */
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.

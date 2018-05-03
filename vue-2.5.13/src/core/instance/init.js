@@ -14,12 +14,12 @@ import { extend, mergeOptions, formatComponentName } from '../util/index' // 工
 let uid = 0
 
 // flow写法，其实就是规定参数类型，先无视
-export function initMixin (Vue: Class<Component>) {                                                                  
+export function initMixin (Vue: Class<Component>) {
   // 给Vue原型上绑定_init方法
   Vue.prototype._init = function (options?: Object) {
     // 重命名Vue实例
     const vm: Component = this
-    
+
     // a uid - 给实例一个属性，统计该方法执行次数
     vm._uid = uid++
 
@@ -42,7 +42,7 @@ export function initMixin (Vue: Class<Component>) {
 
     console.log('基础 => 一个实例的constructor属性是创造它的构造函数本身：', vm.constructor, vm.constructor.super)
     console.log('即使demo.html里是先声明自定义组件后创建实例，但是控制台触发的却是相反。Vue的机制好似是pub/sub发布订阅模式，要不然的话控制台输出应该是先组件后实例')
-    
+
     // merge options
     /**
      * 处理实例化Vue传入的对象参数
@@ -88,8 +88,7 @@ export function initMixin (Vue: Class<Component>) {
     vm._self = vm
 
     // 20180409 20:34
-    // 上面已经对创建实例做出完初始化属性，紧接着就是引入生命周期模块、事件模块、渲染模块(template)、回调钩子模块=>触发beforeCreate生命周期(应该跟生命周期挂钩)、初始化注入模块、初始化状态模块(处理state、props)、初始化供应模块、回调钩子模块=>触发create生命周期(应该跟生命周期挂钩)
-    // 这里可以对照官网周期图，看看Vue在这两个生命周期前后做了啥
+    // 上面已经对vue实例完成基本属性初始化，紧接着就是引入生命周期模块、事件模块、渲染模块(template)、回调钩子模块=>触发beforeCreate生命周期(应该跟生命周期挂钩)、初始化注入模块、初始化状态模块(处理state、props)、初始化供应模块、回调钩子模块=>触发create生命周期(应该跟生命周期挂钩)
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)
@@ -114,7 +113,7 @@ export function initMixin (Vue: Class<Component>) {
 
 /**
  * 初始化内部组件方法 => 只有自定义创建组件的时候才触发
- * @param {*} vm - Vue实例 
+ * @param {*} vm - Vue实例
  * @param {*} options 创建Vue实例传入的对象参数
  */
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
@@ -139,7 +138,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 }
 
 /**
- * 处理构造器选项的方法 - 2018/04/17 
+ * 处理构造器选项的方法 - 2018/04/17
  * @param {*} Ctor - 构造器，一般是指类本身
  */
 export function resolveConstructorOptions (Ctor: Class<Component>) {

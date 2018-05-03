@@ -7,14 +7,24 @@ import {
   handleError,
   formatComponentName
 } from '../util/index'
-import { updateListeners } from '../vdom/helpers/index'
+import { updateListeners } from '../vdom/helpers/index' // 引入更新监听器模块
 
+// 0502
+/**
+ * 初始化事件
+ * @param {*} vm - vue实例
+ */
 export function initEvents (vm: Component) {
+  // typeof null => 'object'，创建一个纯粹的没有继承Object类的对象
   vm._events = Object.create(null)
+  // 初始化属性赋值给vue实例
   vm._hasHookEvent = false
+
   // init parent attached events
+  // 判断对象参数是否有_parentListeners字段
   const listeners = vm.$options._parentListeners
   if (listeners) {
+    // 存在 则调用更新组件监听器方法
     updateComponentListeners(vm, listeners)
   }
 }

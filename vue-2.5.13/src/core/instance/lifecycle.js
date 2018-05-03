@@ -20,11 +20,22 @@ import {
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
+// 0502
+/**
+ * 初始化生命周期
+ * @param {*} vm - vue实例
+ */
 export function initLifecycle (vm: Component) {
+  // 暂存 实例化Vue传入的对象参数
   const options = vm.$options
 
   // locate first non-abstract parent
+  // 定位第一个非抽象的父元素
+
+  // 暂存 父元素
   let parent = options.parent
+
+  // 保证当前$children字段存储的都是顶级元素节点
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
@@ -32,12 +43,17 @@ export function initLifecycle (vm: Component) {
     parent.$children.push(vm)
   }
 
+  // 重写vue实例的$parent字段
   vm.$parent = parent
+  // 重写vue实例的$roott字段 => 保证该值为顶级的
   vm.$root = parent ? parent.$root : vm
 
+  // 重写vue实例的$children字段
   vm.$children = []
+  // 重写vue实例的$refs字段
   vm.$refs = {}
 
+  // 初始化属性赋值给vue实例
   vm._watcher = null
   vm._inactive = null
   vm._directInactive = false
