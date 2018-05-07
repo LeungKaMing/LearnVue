@@ -56,10 +56,16 @@ export function initRender (vm: Component) {
 
   // $attrs & $listeners are exposed for easier HOC creation.
   // they need to be reactive so that HOCs using them are always updated
+  /**
+   * 把vue实例的 $attrs 和 $listeners属性暴露出来，以便使用户构建HOC时更简单，并且这两个属性需要具备响应性的，这样可使HOC高阶组件使用时保持着最新状态。
+   * 判断上述变量是否存在data属性，暂存
+   */
   const parentData = parentVnode && parentVnode.data
 
   /* istanbul ignore else */
+  // 不同环境唯一区别就是：第四个参数是否传一个函数为参数
   if (process.env.NODE_ENV !== 'production') {
+    // 非生产环境
     defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, () => {
       !isUpdatingChildComponent && warn(`$attrs is readonly.`, vm)
     }, true)
@@ -67,6 +73,7 @@ export function initRender (vm: Component) {
       !isUpdatingChildComponent && warn(`$listeners is readonly.`, vm)
     }, true)
   } else {
+    // 生产环境
     defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, null, true)
     defineReactive(vm, '$listeners', options._parentListeners || emptyObject, null, true)
   }
