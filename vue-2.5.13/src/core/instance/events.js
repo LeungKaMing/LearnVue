@@ -9,7 +9,6 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index' // 引入更新监听器模块
 
-// 0502
 /**
  * 初始化事件
  * @param {*} vm - vue实例

@@ -21,6 +21,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
  * also converted to become reactive. However when passing down props,
  * we don't want to force conversion because the value may be a nested value
  * under a frozen data structure. Converting it would defeat the optimization.
+ * 通常一个响应属性被设置后，对应属性值也会具备响应性。尽管如此当向下传递属性的时候，我们不希望属性值具备响应性，因为属性值可能是一个处于冻结数据结构的嵌套值，转变为响应性将会打破原有结构。所以需要有一个开关去控制是否允许属性值具备响应性。
  */
 export const observerState = {
   shouldConvert: true
@@ -107,14 +108,20 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
 /**
  * 目的：是用传入参数来创建观察者实例
  * 如果观察成功则返回新的观察者实例；如果传入参数已经在观察者实例，则返回存在的观察者实例
- * @param {*} vm - vue实例
+ * @param {any} value - 对象实例
+ * @param {boolean} asRootData - 是否作为根数据
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 判断是否为对象类型 或者 对象实例是否属于VNode这个类
   if (!isObject(value) || value instanceof VNode) {
     return
   }
+
+  // 声明变量
   let ob: Observer | void
+  // 判断对象实例是否具有__ob__这个属性 并且 这个属性是Observer类的实例
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    // 将对象实例的__ob__属性 赋值给变量 => 可能value.__ob__这个对象存在一个vmCount属性，值为0
     ob = value.__ob__
   } else if (
     observerState.shouldConvert &&
@@ -123,11 +130,17 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     Object.isExtensible(value) &&
     !value._isVue
   ) {
+    // 科普：ES6 - Object.isExtensible(obj)用于判断对象obj是否可以被拓展，通常与Object.preventExtensions(obj)封锁对象obj增加属性，但能修改现有属性值来使用
+    // 将对象实例作为参数传入，创建Observer类的实例，赋值给变量 => 在实例化的时候可能存在这行代码：this.vmCount = 0
     ob = new Observer(value)
   }
+
+  // 如果存在第二个参数，则给变量的vmCount属性进行累加
   if (asRootData && ob) {
     ob.vmCount++
   }
+
+  // 返回变量
   return ob
 }
 
@@ -147,7 +160,7 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
-  // 创建依赖实例dep => 0507 12:21 先往下看
+  // 创建依赖实例dep
   /**
    * Dep:
    *
@@ -177,11 +190,8 @@ export function defineReactive (
   const getter = property && property.get
   const setter = property && property.set
 
-  // 声明标识 => 0507 17:03 先往下看
-  /**
-   * observe: 将传入的参数与Vue的依赖属性进行对比检查
-   *
-   */
+  // 声明标识
+  // observe: 将传入参数来创建观察者实例，如果观察成功则返回新的观察者实例；如果传入参数已经在观察*者实例，则返回存在的观察者实例。
   let childOb = !shallow && observe(val)
 
   // 往对象上挂载属性
@@ -228,7 +238,8 @@ export function defineReactive (
         val = newVal
       }
 
-      // 将 现在的赋值 交给observe函数进行处理 => 更新$data
+      // 将 现在的赋值 用于创建新的观察者实例
+      // observe: 将传入参数来创建观察者实例，如果观察成功则返回新的观察者实例；如果传入参数已经在观察*者实例，则返回存在的观察者实例。
       childOb = !shallow && observe(newVal)
 
       // 通知Vue，依赖属性要更新了
