@@ -34,6 +34,7 @@ export default class Dep {
     // 判断Dep类是否有target对象
     if (Dep.target) {
       // 存在则调用target对象的addDep属性来将【当前依赖实例】添加到【依赖数组】
+      // 来到这里极有可能，pushTarget已经被调用过 => 即Dep.target的值已经被【观察者实例】覆盖 => 凡是涉及到调用Dep.target的方法，都可以看【Watcher.js】
       Dep.target.addDep(this)
     }
   }
@@ -43,7 +44,7 @@ export default class Dep {
     // 首先备份【订阅数组】
     const subs = this.subs.slice()
     for (let i = 0, l = subs.length; i < l; i++) {
-      subs[i].update()  // 这里我们可以得知【每个观察者实例都具备update这个方法，用于更新观察者】 => 得看Watch怎么写了..20180508 15:31
+      subs[i].update()  // 这里我们可以得知【每个观察者实例都具备update这个方法，用于更新观察者】
     }
   }
 }
@@ -61,12 +62,12 @@ const targetStack = []
 
 /**
  * 推送目标对象
- * @param {*} _target
+ * @param {*} _target - 【Watch类实例】
  */
 export function pushTarget (_target: Watcher) {
   // 如果Dep类的target对象存在，则往目标栈推送该对象
   if (Dep.target) targetStack.push(Dep.target)
-  // 然后将传入参数覆盖掉【Dep类的target对象属性】
+  // 然后将【Watch类实例】覆盖掉【Dep类的target对象属性】
   Dep.target = _target
 }
 

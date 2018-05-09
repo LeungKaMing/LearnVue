@@ -32,6 +32,7 @@ export const observerState = {
  * object. Once attached, the observer converts target
  * object's property keys into getter/setters that
  * collect dependencies and dispatches updates.
+ * Observer类会被关联到每个被观察对象上，关联时会转换目标对象的属性为getter/setter，这两个属性正正用于收集依赖项并且触发依赖项更新。
  */
 export class Observer {
   value: any;
@@ -40,17 +41,17 @@ export class Observer {
 
   constructor (value: any) {
     this.value = value
-    this.dep = new Dep()
+    this.dep = new Dep() // 初始化Dep实例，并赋值给【Observer类实例】的属性
     this.vmCount = 0
-    def(value, '__ob__', this)
+    def(value, '__ob__', this)  // 给传入参数绑定__ob__属性，值为【Observer类实例】
     if (Array.isArray(value)) {
       const augment = hasProto
         ? protoAugment
         : copyAugment
       augment(value, arrayMethods, arrayKeys)
-      this.observeArray(value)
+      this.observeArray(value)  // 传入参数为数组
     } else {
-      this.walk(value)
+      this.walk(value)  // 传入参数不为数组
     }
   }
 
@@ -106,6 +107,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * or the existing observer if the value already has one.
  */
 /**
+ * 疑问：其实Watcher跟Oberser之间是什么关系？ --- 20180509
  * 目的：是用传入参数来创建观察者实例
  * 如果观察成功则返回新的观察者实例；如果传入参数已经在观察者实例，则返回存在的观察者实例
  * @param {any} value - 对象实例
@@ -162,8 +164,7 @@ export function defineReactive (
 ) {
   // 创建依赖实例dep
   /**
-   * Dep:
-   *
+   * Dep:所有vue实例的响应属性都需要 同步 到【依赖类】来备份管理。该【依赖类】可以被【监听类】观察，可以被【多个指令】订阅。
    */
   const dep = new Dep()
 
@@ -191,7 +192,7 @@ export function defineReactive (
   const setter = property && property.set
 
   // 声明标识
-  // observe: 将传入参数来创建观察者实例，如果观察成功则返回新的观察者实例；如果传入参数已经在观察*者实例，则返回存在的观察者实例。
+  // observe: 将传入参数来创建观察者实例，如果观察成功则返回新的观察者实例；如果传入参数已经在观察者实例，则返回存在的观察者实例。
   let childOb = !shallow && observe(val)
 
   // 往对象上挂载属性
@@ -201,8 +202,8 @@ export function defineReactive (
     get: function reactiveGetter () {
       // 定义该对象属性的默认值 => 存在该用回；不存在则用传参
       const value = getter ? getter.call(obj) : val
-      // 不看不行orz...
       if (Dep.target) {
+        // 将【当前依赖实例】添加到【依赖数组】
         dep.depend()
         if (childOb) {
           childOb.dep.depend()
@@ -242,7 +243,7 @@ export function defineReactive (
       // observe: 将传入参数来创建观察者实例，如果观察成功则返回新的观察者实例；如果传入参数已经在观察*者实例，则返回存在的观察者实例。
       childOb = !shallow && observe(newVal)
 
-      // 通知Vue，依赖属性要更新了
+      // 通知Vue，依赖项有更新，观察者需要同步更新
       dep.notify()
     }
   })
