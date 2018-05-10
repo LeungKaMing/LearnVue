@@ -59,16 +59,18 @@ export class Observer {
    * Walk through each property and convert them into
    * getter/setters. This method should only be called when
    * value type is Object.
+   * 遍历对象的每个属性，将他们转换成getter/setter的方式挂载到对象上。只有在值为对象类型时才会调用这个方法。
    */
   walk (obj: Object) {
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
-      defineReactive(obj, keys[i], obj[keys[i]])
+      defineReactive(obj, keys[i], obj[keys[i]])  // 正是这个方法来将对象属性转换成getter/setter的方式
     }
   }
 
   /**
    * Observe a list of Array items.
+   * 观察数组项的列表
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {

@@ -74,7 +74,7 @@ export default class Watcher {
     this.deps = []
     this.newDeps = []
 
-    // 给【监听类实例】一个属性，该属性用于创建一个项唯一的集合
+    // 给【监听类实例】一个属性，该属性用于存放 依赖项Id / 新依赖项Id 且保证项唯一的集合
     this.depIds = new Set()
     this.newDepIds = new Set()
 
