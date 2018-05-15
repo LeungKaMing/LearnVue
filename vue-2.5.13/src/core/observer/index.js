@@ -109,7 +109,6 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * or the existing observer if the value already has one.
  */
 /**
- * 疑问：其实Watcher跟Oberser之间是什么关系？ --- 20180509
  * 目的：是用传入参数来创建观察者实例
  * 如果观察成功则返回新的观察者实例；如果传入参数已经在观察者实例，则返回存在的观察者实例
  * @param {any} value - 对象实例
@@ -193,8 +192,11 @@ export function defineReactive (
   const getter = property && property.get
   const setter = property && property.set
 
-  // 声明标识
-  // observe: 将传入参数来创建观察者实例，如果观察成功则返回新的观察者实例；如果传入参数已经在观察者实例，则返回存在的观察者实例。
+  /**
+   * observe
+   * 创建Observer类实例的辅助函数
+   * 将传入参数来创建观察者实例，如果观察成功则返回新的观察者实例；如果传入参数已经在观察者实例，则返回存在的观察者实例。
+   * */
   let childOb = !shallow && observe(val)
 
   // 往对象上挂载属性
@@ -205,7 +207,7 @@ export function defineReactive (
       // 定义该对象属性的默认值 => 存在该用回；不存在则用传参
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
-        // 将【当前依赖实例】添加到【依赖数组】
+        // 将【当前依赖实例】添加到【观察者实例数组】
         dep.depend()
         if (childOb) {
           childOb.dep.depend()

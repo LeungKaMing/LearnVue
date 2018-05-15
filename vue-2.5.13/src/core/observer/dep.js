@@ -33,8 +33,8 @@ export default class Dep {
   depend () {
     // 判断Dep类是否有target对象
     if (Dep.target) {
-      // 存在则调用target对象的addDep属性来将【当前依赖实例】添加到【依赖数组】
       // 来到这里极有可能，pushTarget已经被调用过 => 即Dep.target的值已经被【观察者实例】覆盖 => 凡是涉及到调用Dep.target的方法，都可以看【Watcher.js】
+      // 添加【当前依赖实例】到 【观察者实例】的相关数组
       Dep.target.addDep(this)
     }
   }

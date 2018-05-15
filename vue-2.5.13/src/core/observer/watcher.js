@@ -111,7 +111,7 @@ export default class Watcher {
    * 调用【监听类实例】的getter，并且重新收集依赖项
    */
   get () {
-    // 假设【Dep类的target对象属性】存在，则往目标栈推送该对象，然后将【监听类实例】推送到覆盖掉原有【Dep类的target对象属性】
+    // 假设【Dep类的target对象属性】存在，则往目标栈推送该对象，然后将【当前监听类实例】覆盖掉原有【Dep类的target对象属性】
     pushTarget(this)
 
     // 声明变量
@@ -120,10 +120,10 @@ export default class Watcher {
     // 暂存【监听类实例】属性 - btw，属性值是vue实例
     const vm = this.vm
 
-    // 20180508
     try {
-      value = this.getter.call(vm, vm)
+      value = this.getter.call(vm, vm)  // 调用【监听类实例】的getter方法，用作返回值
     } catch (e) {
+      // 错误处理
       if (this.user) {
         handleError(e, vm, `getter for watcher "${this.expression}"`)
       } else {
@@ -132,24 +132,30 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      // 判断是否需要做深观察
       if (this.deep) {
         traverse(value)
       }
-      popTarget()
-      this.cleanupDeps()
+      popTarget() // 假设【Dep类的target对象属性】存在，则移除目标栈最后一项
+      this.cleanupDeps()  // 调用清理【依赖项】的方法
     }
     return value
   }
 
   /**
    * Add a dependency to this directive.
+   * 添加【当前依赖实例】到 【观察者实例】的相关数组
    */
   addDep (dep: Dep) {
-    const id = dep.id
-    if (!this.newDepIds.has(id)) {
+    const id = dep.id // 暂存当前【依赖实例】的id
+    if (!this.newDepIds.has(id)) {  // 判断存放新依赖项Id的集合里是否存在当前【依赖实例】的id
+      // 不存在，则分别添加到新依赖项Id的集合 和 新依赖项的集合
       this.newDepIds.add(id)
       this.newDeps.push(dep)
+      // 判断存放依赖项Id的集合里是否存在当前【依赖实例】的id
       if (!this.depIds.has(id)) {
+        // I. 不存在，则调用当前【依赖实例】的方法，将【观察者实例】添加到【订阅数组】
+        // II. 【订阅数组】的用途：1. 当前【依赖实例】有改变时，2. 就会遍历当前【订阅数组】的每一项【观察者实例】，并调用该项的update方法 3. 进行与之==绑定==的【依赖实例】的更新。
         dep.addSub(this)
       }
     }
@@ -157,28 +163,32 @@ export default class Watcher {
 
   /**
    * Clean up for dependency collection.
+   * 清理依赖项
    */
   cleanupDeps () {
     let i = this.deps.length
+    // 从尾到头
     while (i--) {
       const dep = this.deps[i]
-      if (!this.newDepIds.has(dep.id)) {
-        dep.removeSub(this)
+      if (!this.newDepIds.has(dep.id)) {  // 判断在存放新依赖项Id的集合里是否存在当前【依赖项】的id
+        dep.removeSub(this) // 其实就是新集合里不存在，就只需要考虑旧集合
       }
     }
+    // 新旧Id交换
     let tmp = this.depIds
     this.depIds = this.newDepIds
     this.newDepIds = tmp
-    this.newDepIds.clear()
+    this.newDepIds.clear()  // 清除原旧依赖项Id的集合，保留新依赖项Id的集合
     tmp = this.deps
     this.deps = this.newDeps
     this.newDeps = tmp
-    this.newDeps.length = 0
+    this.newDeps.length = 0  // 清除原旧依赖项的集合，保留新依赖项的集合
   }
 
   /**
    * Subscriber interface.
    * Will be called when a dependency changes.
+   * 当依赖项改变时，会被调用
    */
   update () {
     /* istanbul ignore else */
@@ -194,10 +204,12 @@ export default class Watcher {
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
+   * 被调度器调用
    */
   run () {
     if (this.active) {
       const value = this.get()
+      // 比对新旧value
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
@@ -233,6 +245,7 @@ export default class Watcher {
 
   /**
    * Depend on all deps collected by this watcher.
+   * 遍历依赖项数组的每项，使每项都调用自身depend方法
    */
   depend () {
     let i = this.deps.length
@@ -243,6 +256,7 @@ export default class Watcher {
 
   /**
    * Remove self from all dependencies' subscriber list.
+   * 将依赖项自身从监听列表中移除
    */
   teardown () {
     if (this.active) {
