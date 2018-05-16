@@ -11,11 +11,60 @@
 </body>
 <script>
   // Vue类
-  function VueDemo () {
-    
+  class VueDemo {
+    constructor (opts) {
+      // 初始化属性
+      const {el, data} = opts
+      this.$vm = this
+      this.$el = el
+      this.$options = data
+      console.log(this.constructor)
+      
+      // 数据劫持
+      var temp = new Observer({})
+      console.log(temp.hack().testAttr)
+      console.log(temp.hack().testAttr = 2)
+    }
   }
 
-  
+  // 数据劫持
+  class Observer {
+    constructor (obj) {
+      Object.defineProperty(obj, 'testAttr', {
+        get () {
+          return 1
+        },
+        set (newVal) {
+          console.log(`设置了新值为${newVal}`) 
+        }
+      })
+      this.obj = obj
+    }
+
+    hack () {
+      return this.obj
+    }
+  }
+
+  // 两者之间互相调用，互相保存，互相绑定
+  // 依赖类
+  class Dep {
+    constructor () {}
+  }
+
+  // 监听类
+  class Watch {
+    constructor () {}
+  }
+
+  var vm = new VueDemo({
+    el: '#app',
+    data () {
+      return {
+        text: 'Hi!'
+      }
+    }
+  })
 
 </script>
 </html>
