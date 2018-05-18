@@ -17,54 +17,121 @@
       const {el, data} = opts
       this.$vm = this
       this.$el = el
-      this.$options = data
-      console.log(this.constructor)
+      // 这里虽说在实例化的时候，让vue实例已经可以通过$data拿到相应属性，但是不要忘记这里的依赖数组并没有被监听 => 此时就需要数据劫持，字面意义就是需要在操作数据的时候加入自定义逻辑，即【监听】
+      this.$data = this.data = data
       
-      // 数据劫持
-      var temp = new Observer({})
-      console.log(temp.hack().testAttr)
-      console.log(temp.hack().testAttr = 2)
+      // 数据劫持(简化版)
+      var observe = new Observer(this)
+      observe.init()
     }
   }
 
   // 数据劫持
   class Observer {
-    constructor (obj) {
-      Object.defineProperty(obj, 'testAttr', {
-        get () {
-          return 1
-        },
-        set (newVal) {
-          console.log(`设置了新值为${newVal}`) 
-        }
-      })
-      this.obj = obj
+    constructor (vm) {
+      this.vm = vm  // 将vue的实例绑定在自身属性上
     }
 
-    hack () {
-      return this.obj
+    // 初始化并统一传入参数的类型
+    init () {
+      let [keys] = ['']
+      if (this.vm.$data instanceof Function) {
+        this.vm.$data = this.vm.$data()
+        keys = Object.keys(this.vm.$data)
+      } else if (this.vm.$data instanceof Object) {
+        keys = Object.keys(this.vm.$data)
+      }
+      for (let i = 0; i< keys.length; i++) {
+        this.defineReactive(this.vm.$data, keys[i], this.vm.$data[keys[i]])
+      }
+
+      Dep.target = new Watch()
     }
+
+    // 将统一类型后的参数重新挂载在vue实例的$data / data属性上，并将每个依赖项加入观察数组
+    defineReactive (vm, currentKey, currentVal) {
+      const dep = new Dep()
+      Object.defineProperty(vm, currentKey, {
+          enumerable: true,
+          configurable: true,
+        get () {
+          dep.depend()  // 告诉【依赖类】有某个属性注册到vue实例的$data上，需要叫【依赖类】将$data的键全部绑定一次在【监听数组】上
+          return currentVal
+        },
+        set (newVal) {
+        /**
+         * 有什么情况下本身不等于本身？
+         * 对象数据类型，如:array，object
+         * {} !== {}, [] !== []
+         */
+         if (currentVal === newVal || (currentVal !== currentVal && newVal !== newVal)) {
+          return
+         }
+         dep.notify()
+         currentVal = newVal
+        }
+      })
+    }
+
   }
+
 
   // 两者之间互相调用，互相保存，互相绑定
   // 依赖类
   class Dep {
-    constructor () {}
+    constructor () {
+      this.watchCollect = new Set([])
+    }
+
+    addSub (watch) {
+      this.watchCollect.add(watch)
+    }
+
+    removeSub (watch) {
+      this.watchCollect.remove(watch)
+    }
+
+    depend () {
+      Dep.target.addDep(this)
+    }
+
+    notify () {
+      // console.log(this.watchCollect.slice())
+    }
   }
 
-  // 监听类
+  // 监听类 -- 任意时刻只有一个watcher
   class Watch {
-    constructor () {}
+    constructor () {
+      this.oldDepCollect = new Set([])  // Set集合才有has方法，对集合项做查找判断
+      this.newDepCollect = new Set([])
+    }
+
+    // 将依赖项全部挂载一次在【监听数组】
+    addDep (dep) {
+      if (!this.newDepCollect.has(dep)) {
+        // 新依赖项数组没有就加进去 => 新依赖数组没有，并不代表旧依赖数组没有，查一下
+        this.newDepCollect.add(dep)
+        if (!this.oldDepCollect.has(dep)) {
+          // 旧依赖项数组都没有 => 因为上面新依赖项数组属性已经具备了，所以直接把整个监听类实例丢过去让依赖类自身自己加吧
+          // this.oldDepCollect.add(dep)
+          dep.addSub(this)
+        }
+      }
+    }
   }
 
   var vm = new VueDemo({
     el: '#app',
     data () {
       return {
-        text: 'Hi!'
+        text: 'Hi!',
+        tag: true
       }
     }
   })
-
+  console.log(vm.$data.text, 'before')
+  vm.$data.text = 'ljm hahaha'
+  console.log(vm.$data.text, 'after')
 </script>
 </html>
