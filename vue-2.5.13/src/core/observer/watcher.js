@@ -188,15 +188,15 @@ export default class Watcher {
   /**
    * Subscriber interface.
    * Will be called when a dependency changes.
-   * 当依赖项改变时，会被调用
+   * 当依赖项改变时，会被调用 => 依赖项改变是指挂载在data属性的值改变
    */
   update () {
     /* istanbul ignore else */
     if (this.lazy) {
       this.dirty = true
-    } else if (this.sync) {
+    } else if (this.sync) { // 从这里得知，如果同步属性为true，则调用run方法；在该方法会调用get方法重新收集依赖
       this.run()
-    } else {
+    } else {  // 从这里得知，既不是懒加载，又不是同步，剩余都用调度器方法处理
       queueWatcher(this)
     }
   }
@@ -208,6 +208,7 @@ export default class Watcher {
    */
   run () {
     if (this.active) {
+      // 重新收集依赖项
       const value = this.get()
       // 比对新旧value
       if (
@@ -215,12 +216,14 @@ export default class Watcher {
         // Deep watchers and watchers on Object/Arrays should fire even
         // when the value is the same, because the value may
         // have mutated.
+        // 当值还是没变的情况下，深度观察 跟 基于对象/数组类型的观察会被触发，因为内存空间有可能发生了改变
         isObject(value) ||
         this.deep
       ) {
         // set new value
         const oldValue = this.value
         this.value = value
+        // 通过传入的回调函数cb，来对新依赖项值和旧依赖项值做统一处理
         if (this.user) {
           try {
             this.cb.call(this.vm, value, oldValue)

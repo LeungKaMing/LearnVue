@@ -123,25 +123,35 @@ function callActivatedHooks (queue) {
  * Push a watcher into the watcher queue.
  * Jobs with duplicate IDs will be skipped unless it's
  * pushed when the queue is being flushed.
+ * 将【当前观察者实例】推送到【观察者队列】；除非重复id的任务是在观察者队列被冲刷时被加入的，否则重复id的任务会被跳过。
  */
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
+  console.log(id, '1. watcher的id')
   if (has[id] == null) {
     has[id] = true
-    if (!flushing) {
+    console.log(flushing, '2. flushing')
+    if (!flushing) {  // 从这里可以得知，重复的id相关flushing属性会设置为true，从而不会加入队列
       queue.push(watcher)
+      console.log(queue, '3.1. queue队列是这样的')
+      console.log(watcher, '3.2. queue队列的观察者实例项watcher是这样的')
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
+      // 如果已经刷新，则基于它的id将监视器连接起来。
+      // 如果已经超过了它的id，它将会立即运行
       let i = queue.length - 1
+      console.log(i, '4. 当前queue队列的长度为')
       while (i > index && queue[i].id > watcher.id) {
         i--
       }
       queue.splice(i + 1, 0, watcher)
+      console.log(i, '5. 经过上面逻辑将在队列的这个索引值i前面增加新的观察者实例，队列变为：', queue)
     }
     // queue the flush
     if (!waiting) {
       waiting = true
+      console.log('6. 进入nextTick方法')
       nextTick(flushSchedulerQueue)
     }
   }

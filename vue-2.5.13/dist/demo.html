@@ -23,7 +23,24 @@
       return {
         text: 'Hello, Vue!'
       }
+    },
+    watch: {
+      text (newVal, oldVal) {
+        console.log(newVal, oldVal, 'I am in watch method.')
+      }
     }
   })
+
+  setTimeout(() => {
+    // Vue.set(vm.$data, 'day0523', '0523')  // 不能再这样做了
+    // vm.$set(vm.$data, 'day0523', '0523')  // 不能再这样做了
+    // vm.$data.day0523 = '0523'
+    // console.log('用全局api设置了day0523键值，看看是否存在：', vm.$data.day0523)
+    vm.$data.text = 'use watch'
+    console.log('1. 更新dom前', vm.$data.text)
+    Vue.nextTick().then(() => {
+      console.log('2. 更新dom后', vm.$data.text)
+    })
+  }, 3000)
 </script>
 </html>

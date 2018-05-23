@@ -10,6 +10,9 @@
   <div id="app"></div>
 </body>
 <script>
+  let has = {}  // 观察者类用到的变量
+  const queue = []  // 观察者队列
+
   // Vue类
   class VueDemo {
     constructor (opts) {
@@ -52,8 +55,8 @@
     defineReactive (vm, currentKey, currentVal) {
       const dep = new Dep()
       Object.defineProperty(vm, currentKey, {
-          enumerable: true,
-          configurable: true,
+        enumerable: true,
+        configurable: true,
         get () {
           dep.depend()  // 告诉【依赖类】有某个属性注册到vue实例的$data上，需要叫【依赖类】将$data的键全部绑定一次在【监听数组】上
           return currentVal
@@ -80,15 +83,14 @@
   // 依赖类
   class Dep {
     constructor () {
-      this.watchCollect = new Set([])
+      this.watchCollect = []
     }
 
     addSub (watch) {
-      this.watchCollect.add(watch)
+      this.watchCollect.push(watch)
     }
 
     removeSub (watch) {
-      this.watchCollect.remove(watch)
     }
 
     depend () {
@@ -96,27 +98,46 @@
     }
 
     notify () {
-      // console.log(this.watchCollect.slice())
+      const subs = this.watchCollect.slice()
+      for (let i=0;i < subs.length; i++) {
+        subs[i].update()  // 每个观察者实例项都调用update方法
+      }
     }
   }
 
   // 监听类 -- 任意时刻只有一个watcher
   class Watch {
     constructor () {
-      this.oldDepCollect = new Set([])  // Set集合才有has方法，对集合项做查找判断
-      this.newDepCollect = new Set([])
+      // Set集合才有has方法，对集合项做查找判断
+      this.oldDepCollectId = new Set([])
+      this.oldDepCollect = []
+      this.newDepCollectId = new Set([])
+      this.newDepCollect = []
     }
 
     // 将依赖项全部挂载一次在【监听数组】
     addDep (dep) {
-      if (!this.newDepCollect.has(dep)) {
+      if (!this.newDepCollectId.has(dep)) {
         // 新依赖项数组没有就加进去 => 新依赖数组没有，并不代表旧依赖数组没有，查一下
-        this.newDepCollect.add(dep)
-        if (!this.oldDepCollect.has(dep)) {
-          // 旧依赖项数组都没有 => 因为上面新依赖项数组属性已经具备了，所以直接把整个监听类实例丢过去让依赖类自身自己加吧
-          // this.oldDepCollect.add(dep)
+        this.newDepCollectId.add(dep)
+        this.newDepCollect.push(dep)
+        if (!this.oldDepCollectId.has(dep)) {
           dep.addSub(this)
         }
+      }
+    }
+
+    update () {
+      this.queueWatcher(this)
+    }
+
+    // 将【当前观察者实例】推送到【观察者队列】；除非重复id的任务是在观察者队列被冲刷时被加入的，否则重复id的任务会被跳过。
+    queueWatcher (watcher) {
+      const id = watcher.id
+      if (has[id] === null) {
+        has[id] = true
+        // 简化版
+        queue.push(watcher)
       }
     }
   }
@@ -130,8 +151,7 @@
       }
     }
   })
-  console.log(vm.$data.text, 'before')
   vm.$data.text = 'ljm hahaha'
-  console.log(vm.$data.text, 'after')
+  console.log(vm.$data)
 </script>
 </html>
