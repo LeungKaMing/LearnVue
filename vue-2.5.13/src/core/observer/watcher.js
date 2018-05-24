@@ -216,7 +216,7 @@ export default class Watcher {
         // Deep watchers and watchers on Object/Arrays should fire even
         // when the value is the same, because the value may
         // have mutated.
-        // 当值还是没变的情况下，深度观察 跟 基于对象/数组类型的观察会被触发，因为内存空间有可能发生了改变
+        // 虽然表面上看值还是没变，但还是要走1）深度观察 跟 2）基于对象/数组类型的观察的流程，因为内存空间有可能发生了改变
         isObject(value) ||
         this.deep
       ) {

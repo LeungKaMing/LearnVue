@@ -9,6 +9,7 @@ const callbacks = []
 let pending = false
 
 function flushCallbacks () {
+  console.log('进入刷新回调函数的公共方法')
   pending = false
   const copies = callbacks.slice(0)
   callbacks.length = 0
@@ -87,12 +88,14 @@ export function withMacroTask (fn: Function): Function {
   })
 }
 
+// 回调队列处理方法
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
+  // 往回调队列数组添加函数
   callbacks.push(() => {
     if (cb) {
       try {
-        cb.call(ctx)
+        cb.call(ctx)  // 改变传参的回调函数的this指向
       } catch (e) {
         handleError(e, ctx, 'nextTick')
       }
@@ -101,7 +104,8 @@ export function nextTick (cb?: Function, ctx?: Object) {
     }
   })
   if (!pending) {
-    pending = true
+    pending = true  // 同一时间只会存在一个nextTick方法调用
+    // console.log('useMacroTask是什么，从而决定走宏定时任务 还是 微定时任务: ', useMacroTask)
     if (useMacroTask) {
       macroTimerFunc()
     } else {
