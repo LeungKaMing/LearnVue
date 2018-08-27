@@ -247,12 +247,15 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
  * Validate component names
  */
 function checkComponents (options: Object) {
+  // 如果实例化Vue时传入的options参数带了components属性，需要校验组件命名格式
   for (const key in options.components) {
     validateComponentName(key)
   }
 }
 
+// 验证组件命名格式
 export function validateComponentName (name: string) {
+  // 组件命名只能是字母开头，除了连字符外不能带任何标点符号
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
     warn(
       'Invalid component name: "' + name + '". Component names ' +
@@ -271,24 +274,28 @@ export function validateComponentName (name: string) {
 /**
  * Ensure all props option syntax are normalized into the
  * Object-based format.
+ * 由于Vue的props属性可以有多种写法，所以需要统一转换它们的格式为对象格式
  */
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
-  if (!props) return
+  if (!props) return  // 没这属性就可以不用看了。
   const res = {}
   let i, val, name
+  // 是否为数组格式
   if (Array.isArray(props)) {
+    // 数组长度存起来
     i = props.length
+    // 遍历
     while (i--) {
       val = props[i]
-      if (typeof val === 'string') {
+      if (typeof val === 'string') {  // 是否为字符串格式
         name = camelize(val)
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
         warn('props must be strings when using array syntax.')
       }
     }
-  } else if (isPlainObject(props)) {
+  } else if (isPlainObject(props)) {  // 是否为对象格式
     for (const key in props) {
       val = props[key]
       name = camelize(key)
@@ -368,9 +375,11 @@ export function mergeOptions (
   vm?: Component
 ): Object {
   if (process.env.NODE_ENV !== 'production') {
+    // 非生产环境需要检查组件命名规则
     checkComponents(child)
   }
 
+  // 对第二个传入参数处理
   if (typeof child === 'function') {
     child = child.options
   }

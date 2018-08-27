@@ -40,7 +40,7 @@ export function initMixin (Vue: Class<Component>) {
     // a flag to avoid this being observed - 给实例一个属性，避免实例被观察
     vm._isVue = true
 
-    console.log('基础 => 一个实例的constructor属性是创造它的构造函数本身：', vm.constructor, vm.constructor.super)
+    console.log('基础 => 一个实例的constructor属性是创造它的构造函数本身：', vm.constructor)
     console.log('即使demo.html里是先声明自定义组件后创建实例，但是控制台触发的却是相反。Vue的机制好似是pub/sub发布订阅模式，要不然的话控制台输出应该是先组件后实例')
 
     // merge options
@@ -59,12 +59,12 @@ export function initMixin (Vue: Class<Component>) {
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
       // 1. 由于动态选项合并非常缓慢，所以需要进一步优化 实例化Vue 流程
-      console.log('opt2: 优化实例化，但是不能直接在实例化的时候用_isComponent: true，会报错：Cannot read property componentOptions of undefined，需要配合特殊条件；只有在自定义组件时会自动给options加上的_isComponent才有意义', '优先创建组件', options._isComponent)
+      console.log('>>>>>>>opt2: 优化创建组件，但是不能直接在实例化的时候用_isComponent: true，会报错：Cannot read property componentOptions of undefined，需要配合特殊条件；只有在自定义组件时会自动给options加上的_isComponent才有意义<<<<<<<<', options._isComponent)
       initInternalComponent(vm, options)  // 应该就是这个方法会检测到当前的方式，然后决定是否添加_isComponent属性
     } else {
       // 1. 普通实例化
       // 2. 赋值给实例一个$options属性，值为合并选项模块处理后的结果
-      console.log('opt1: 正常实例化，优先处理创建实例', options._isComponent)
+      console.log('>>>>>>>opt1: 正常实例化，优先处理创建实例<<<<<<<<<<<', options._isComponent)
       // 三个参数：1）传入参数为Vue类本身的函数返回值 2）options 3）vue实例本身
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
@@ -117,8 +117,10 @@ export function initMixin (Vue: Class<Component>) {
  * @param {*} options 创建Vue实例传入的对象参数
  */
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+  // 以vm.constructor.options为原型创建一个对象实例opts
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
+  // 【初始化操作】把所有现有属性都保存到 opts 这个对象实例上
   const parentVnode = options._parentVnode
   opts.parent = options.parent
   opts._parentVnode = parentVnode
