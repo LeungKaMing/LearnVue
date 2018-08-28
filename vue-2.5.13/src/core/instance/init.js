@@ -73,7 +73,6 @@ export function initMixin (Vue: Class<Component>) {
       )
     }
 
-    // 20180409 20:25
     /* istanbul ignore else */
     // 非生产环境需要调用 初始化代理模块，传入vue实例作为参数
     if (process.env.NODE_ENV !== 'production') {
@@ -87,8 +86,7 @@ export function initMixin (Vue: Class<Component>) {
     // 赋值给vue实例一个_self属性，键值为实例本身
     vm._self = vm
 
-    // 20180409 20:34
-    // 上面已经对vue实例完成基本属性初始化，紧接着就是引入生命周期模块、事件模块、渲染模块(template)、回调钩子模块=>触发beforeCreate生命周期(应该跟生命周期挂钩)、初始化注入模块、初始化状态模块(处理state、props)、初始化供应模块、回调钩子模块=>触发create生命周期(应该跟生命周期挂钩)
+    // 上面已经对vue实例完成基本options属性初始化，紧接着就是引入生命周期模块、事件模块、渲染模块(template)、回调钩子模块=>触发beforeCreate生命周期(应该跟生命周期挂钩)、初始化注入模块、初始化状态模块(处理state、props)、初始化供应模块、回调钩子模块=>触发create生命周期(应该跟生命周期挂钩)
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)
@@ -140,7 +138,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 }
 
 /**
- * 处理构造器选项的方法 - 2018/04/17
+ * 处理构造器选项的方法
  * @param {*} Ctor - 构造器，一般是指类本身
  */
 export function resolveConstructorOptions (Ctor: Class<Component>) {

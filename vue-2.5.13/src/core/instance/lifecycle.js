@@ -26,7 +26,7 @@ export let isUpdatingChildComponent: boolean = false
  * @param {*} vm - vue实例
  */
 export function initLifecycle (vm: Component) {
-  // 暂存 实例化Vue传入的对象参数
+  // 暂存 实例化Vue传入的对象参数 => vm.$options是通过调用【initMixin方法对Vue原型对_init方法时候处理的】，目的是将初始化Vue实例传入的参数做一层过滤处理
   const options = vm.$options
 
   // locate first non-abstract parent
@@ -45,7 +45,7 @@ export function initLifecycle (vm: Component) {
 
   // 重写vue实例的$parent字段
   vm.$parent = parent
-  // 重写vue实例的$roott字段 => 保证该值为顶级的
+  // 重写vue实例的$root字段 => 保证该值为顶级的
   vm.$root = parent ? parent.$root : vm
 
   // 重写vue实例的$children字段

@@ -10,12 +10,13 @@
 <body>
   <div id="app">
     <p>{{ text }}</p>
-    <my-component></my-component>
+    <my-component property="hello world"></my-component>
   </div>
 </body>
 <script>
   Vue.component('my-component', {
-    template: '<div>A custom component!</div>'
+    template: '<div>{{ property }}!</div>',
+    props: ['property']
   })
   let vm = new Vue({
     el: '#app',

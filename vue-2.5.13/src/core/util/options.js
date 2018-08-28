@@ -290,6 +290,7 @@ function normalizeProps (options: Object, vm: ?Component) {
       val = props[i]
       if (typeof val === 'string') {  // 是否为字符串格式
         name = camelize(val)
+        console.log('0828: let\'s talk about props: ', name)
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
         warn('props must be strings when using array syntax.')
@@ -310,11 +311,14 @@ function normalizeProps (options: Object, vm: ?Component) {
       vm
     )
   }
+  // 格式化后的props重新赋值给实例化Vue的参数options
   options.props = res
+  console.log('0828: final props will be object format: ', res)
 }
 
 /**
  * Normalize all injections into Object-based format
+ * 格式化所有注入为对象格式
  */
 function normalizeInject (options: Object, vm: ?Component) {
   const inject = options.inject
@@ -342,6 +346,7 @@ function normalizeInject (options: Object, vm: ?Component) {
 
 /**
  * Normalize raw function directives into object format.
+ * 格式化函数指令为对象格式
  */
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
@@ -410,6 +415,7 @@ export function mergeOptions (
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }
+  // 最后返回合并后的新对象
   return options
 }
 
